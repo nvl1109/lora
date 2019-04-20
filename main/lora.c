@@ -235,7 +235,8 @@ int endPacket(bool async)
     while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
       // yield();
         // TODO: here
-        taskYIELD();
+        // taskYIELD();
+        vTaskDelay(1/portTICK_RATE_MS);
     }
     // clear IRQ's
     writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
