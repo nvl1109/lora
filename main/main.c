@@ -51,9 +51,12 @@ void task_send_demo(void * pvParameter)
   int count = 0;
   while (1) {
     vTaskDelay(5000/portTICK_RATE_MS);
-    msg.length = sprintf(msg.payload, "Hello %d", count++);
+    msg.payload[0] = 0x11;
+    msg.payload[1] = 0x42 | (count & 0x1); // message header matches if count is even
+    msg.length = sprintf(msg.payload + 2, "Hello %d", count++) + 2;
 
-    printf(">>> %s\n", msg.payload);
+    printf(">>> ");
+    dumpPayload(msg.payload, msg.length);
     lora_send(&msg);
   }
 }

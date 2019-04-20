@@ -34,9 +34,10 @@
 #define BANDWIDTH                                  100
 #define SYNC_LENGTH                                2
 
+#define LORA_MAX_PAYLOAD_SIZE 255
 struct lora_msg {
   int length;
-  char payload[500];
+  char payload[LORA_MAX_PAYLOAD_SIZE];
 };
 
 void lora_task(void * pvParameter);

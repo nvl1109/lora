@@ -704,3 +704,15 @@ static void IRAM_ATTR di0_isr_handler(void* arg)
     uint32_t gpio_num = (uint32_t) arg;
     // xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
 }
+
+void dumpPayload(char *buf, int len)
+{
+    int i;
+    for (i = 0; i < len; ++i) {
+        if ((!(i & 0x1F)) && i) {
+          printf("\n");
+        }
+        printf("%02x ", buf[i]);
+    }
+    printf("\n");
+}
