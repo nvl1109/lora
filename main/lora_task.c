@@ -27,6 +27,7 @@ void lora_task(void *pvParameters)
   int count = 0;
   struct lora_msg msg;
   int not_interested = 0;
+  int send_count = 0;
 
     s_lora_queue = xQueueCreate(5, sizeof(struct lora_msg));
 
@@ -56,6 +57,7 @@ void lora_task(void *pvParameters)
       loraWriteBuf((uint8_t *)msg.payload, msg.length);
       endPacket(0);
       printf("Sent: '%s'\n", msg.payload);
+      vTaskDelay(5/portTICK_RATE_MS);
     }
     // RX
     not_interested = 0;
@@ -81,6 +83,14 @@ void lora_task(void *pvParameters)
       printf("Recv: message '%s' with RSSI %d:", msg.payload + 2, packetRssi());
       msg.length = count;
       dumpPayload(msg.payload, count);
+#if ! LORA_TEST_TX
+      // Echo back
+      if (send_count++ & 0x1) {
+        msg.payload[0] = 0x12;
+      }
+      msg.payload[3] = 'a';
+      lora_send(&msg);
+#endif
     }
   }
 }
