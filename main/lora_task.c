@@ -51,7 +51,7 @@ void lora_task(void *pvParameters)
 
   while(1)
   {
-    if (xQueueReceive(s_lora_queue, &msg, 10/portTICK_RATE_MS)) {
+    if (xQueueReceive(s_lora_queue, &msg, 5/portTICK_RATE_MS)) {
       // Has data to send
       beginPacket(0);
       loraWriteBuf((uint8_t *)msg.payload, msg.length);
@@ -73,7 +73,7 @@ void lora_task(void *pvParameters)
           // Not interested packet
           printf("Not interested packet, ignore 0x%x 0x%x\n", msg.payload[0], msg.payload[1]);
           loraSleep(); // Enter sleep mode to clear FIFO
-          vTaskDelay(20/portTICK_RATE_MS);
+          vTaskDelay(2/portTICK_RATE_MS);
           loraIdle();  // Back to standby mode
           not_interested = 1;
           break;
