@@ -15,10 +15,14 @@
 
 #include "lora_task.h"
 
-TaskHandle_t g_loratsk;
+#if LORA_TEST_TX
+#include "lora.h"
 TaskHandle_t send_tsk;
 
 void task_send_demo(void * pvParameter);
+#endif
+
+TaskHandle_t g_loratsk;
 
 void app_main()
 {
@@ -45,6 +49,7 @@ void app_main()
 #endif
 }
 
+#if LORA_TEST_TX
 void task_send_demo(void * pvParameter)
 {
   struct lora_msg msg;
@@ -60,3 +65,5 @@ void task_send_demo(void * pvParameter)
     lora_send(&msg);
   }
 }
+
+#endif
