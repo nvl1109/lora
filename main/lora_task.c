@@ -26,7 +26,7 @@ void lora_task(void *pvParameters)
 {
   int count = 0;
   struct lora_msg msg;
-  struct lora_msg *msg_ptr = NULL;
+  int not_interested = 0;
 
     s_lora_queue = xQueueCreate(5, sizeof(struct lora_msg));
 
@@ -58,6 +58,7 @@ void lora_task(void *pvParameters)
       printf("Sent: '%s'\n", msg.payload);
     }
     // RX
+    not_interested = 0;
     count = parsePacket(0);
     if (count) {
       memset(&msg, 0, sizeof(msg));
@@ -66,15 +67,18 @@ void lora_task(void *pvParameters)
         msg.payload[count] = loraRead();
         count ++;
 
-        if ((count == 3) && ((msg.payload[0] != 0x11) && msg.payload[1] != 0x42)) {
+        if ((count >= 2) && ((msg.payload[0] != 0x11) || msg.payload[1] != 0x42)) {
           // Not interested packet
           printf("Not interested packet, ignore 0x%x 0x%x\n", msg.payload[0], msg.payload[1]);
           loraSleep(); // Enter sleep mode to clear FIFO
           vTaskDelay(20/portTICK_RATE_MS);
           loraIdle();  // Back to standby mode
+          not_interested = 1;
+          break;
         }
       }
-      printf("Recv: message with RSSI %d:", packetRssi());
+      if (not_interested) continue;
+      printf("Recv: message '%s' with RSSI %d:", msg.payload + 2, packetRssi());
       msg.length = count;
       dumpPayload(msg.payload, count);
     }
