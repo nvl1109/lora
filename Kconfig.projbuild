@@ -1,0 +1,21 @@
+menu "Wifi Configuration"
+
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "ELB-REV412345"
+        help
+            SSID (network name) for the example to connect to.
+
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "ELB-REV412345"
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    config FIRMWARE_UPGRADE_URL
+        string "firmware upgrade url endpoint"
+        default "http://www.ssla.co.uk/downloads/application.bin"
+        help
+            URL of server which hosts the firmware
+            image.
+endmenu

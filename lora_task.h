@@ -34,13 +34,23 @@
 #define BANDWIDTH                                  100
 #define SYNC_LENGTH                                2
 
-struct lora_msg {
-  int length;
-  char payload[500];
-};
 
 void lora_task(void * pvParameter);
+extern bool lora_ready;
+extern int  idx;
+//int lora_send(struct lora_msg *msg);
 
-int lora_send(struct lora_msg *msg);
+union splitData {
+   uint8_t  totalFrames;
+   uint8_t  FrameNumber;
+   uint16_t packetID;
+};
+
+union splitSignature {
+   uint8_t  sign_high;
+   uint8_t  sign_low;
+   uint16_t signature;
+};
+
 
 #endif

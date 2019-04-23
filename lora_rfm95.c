@@ -1,6 +1,12 @@
-// Copyright (c) Sandeep Mistry. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/* Filename    : lora_rfm95 source
+   Description : this file will have lower layer code to read/write from  lora
+   Author      : http://www.ssla.co.uk
 
+   This software is SSLA licensed
+   Unless required by applicable law or agreed to in writing, this
+   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+   CONDITIONS OF ANY KIND, either express or implied.
+*/
 #include <stdio.h>
 #include <string.h>
 #include <rom/ets_sys.h>
@@ -8,7 +14,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "lora.h"
+#include "lora_rfm95.h"
 
 // registers
 #define REG_FIFO                 0x00
@@ -70,12 +76,12 @@
   long _frequency;
   int _packetIndex;
   int _implicitHeaderMode;
-static spi_device_handle_t s_spi;
+  static spi_device_handle_t s_spi;
   void (*_onReceive)(int);
 
   static const char *TAG = "lora";
 
-static void IRAM_ATTR di0_isr_handler(void* arg);
+//static void IRAM_ATTR di0_isr_handler(void* arg);
 
 int loraInit(void)
 {
@@ -92,7 +98,7 @@ int loraInit(void)
     spi_device_interface_config_t devcfg={
         .clock_speed_hz=SPI_MASTER_FREQ_8M,     //Clock out at 8 MHz
         .mode=0,                                //SPI mode 0
-        .spics_io_num=RFM95_nCS,                //CS pin
+        .spics_io_num=RFM95_NCS,                //CS pin
         .queue_size=2,                          //We want to be able to queue 2 transactions at a time
         .pre_cb=NULL,
         .command_bits = 0,
@@ -144,7 +150,7 @@ int loraBegin(long frequency)
     io_conf.pin_bit_mask = 1 << RFM95_RESET;
     //disable pull-down mode
     io_conf.pull_down_en = 0;
-    //disable pull-up mode
+    //enable pull-up mode
     io_conf.pull_up_en = 1;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
@@ -235,7 +241,8 @@ int endPacket(bool async)
     while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
       // yield();
         // TODO: here
-        taskYIELD();
+        //taskYIELD();
+        vTaskDelay(1/portTICK_RATE_MS);
     }
     // clear IRQ's
     writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
@@ -699,8 +706,8 @@ void onDio0Rise()
 void crc() { enableCrc(); }
 void noCrc() { disableCrc(); }
 
-static void IRAM_ATTR di0_isr_handler(void* arg)
+/*static void IRAM_ATTR di0_isr_handler(void* arg)
 {
     uint32_t gpio_num = (uint32_t) arg;
     // xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
-}
+}*/

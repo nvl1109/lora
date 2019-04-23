@@ -1,6 +1,13 @@
-// Copyright (c) Sandeep Mistry. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/* Filename    : lora_rfm95 header
+   Description : this file will have lower layer declarations to read/write
+                 from rfm95 lora module
+   Author      : http://www.ssla.co.uk
 
+   This software is SSLA licensed
+   Unless required by applicable law or agreed to in writing, this
+   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+   CONDITIONS OF ANY KIND, either express or implied.
+*/
 #ifndef LORA_H
 #define LORA_H
 
@@ -16,15 +23,15 @@
 #define RFM95_MISO                  19
 #define RFM95_MOSI                  23
 #define RFM95_SCK                   18
-#define RFM95_nCS                   5
+#define RFM95_NCS                   5
 #define RFM95_RESET                 12
 
-#define PA_OUTPUT_RFO_PIN          0
-#define PA_OUTPUT_PA_BOOST_PIN     1
+#define PA_OUTPUT_RFO_PIN           0
+#define PA_OUTPUT_PA_BOOST_PIN      1
 
-int loraInit(void);
-int loraBegin(long frequency);
-void loraEnd();
+  int loraInit(void);
+  int loraBegin(long frequency);
+  void loraEnd();
 
   int beginPacket(int implicitHeader);
   int endPacket(bool async);
@@ -77,13 +84,13 @@ void loraEnd();
   void handleDio0Rise();
   bool isTransmitting();
 
-  int getSpreadingFactor();
+  int  getSpreadingFactor();
   long getSignalBandwidth();
 
   void setLdoFlag();
 
   uint8_t readRegister(uint8_t address);
-  void writeRegister(uint8_t address, uint8_t value);
+  void    writeRegister(uint8_t address, uint8_t value);
   uint8_t singleTransfer(uint8_t address, uint8_t value);
 
 #endif
