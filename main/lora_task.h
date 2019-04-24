@@ -41,14 +41,18 @@ extern int  idx;
 //int lora_send(struct lora_msg *msg);
 
 union splitData {
-   uint8_t  totalFrames;
-   uint8_t  FrameNumber;
+   struct {
+      uint8_t  totalFrames;
+      uint8_t  FrameNumber;
+   } s;
    uint16_t packetID;
 };
 
 union splitSignature {
-   uint8_t  sign_high;
-   uint8_t  sign_low;
+   struct {
+      uint8_t  sign_high;
+      uint8_t  sign_low;
+   } s;
    uint16_t signature;
 };
 

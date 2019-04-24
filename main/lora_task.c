@@ -62,6 +62,7 @@ void lora_task(void *pvParameters)
     {
       if (xQueueReceive(txqueue, &msg, 2/portTICK_RATE_MS)) {
         //Has data to send
+        vTaskDelay(10/portTICK_RATE_MS); // This delay avoid two messages (STATUS + ACK) are closely sending
         beginPacket(0);
         loraWriteBuf((uint8_t *)&msg, LORA_HEADER_SIZE + msg.length);
         endPacket(0);
@@ -70,6 +71,7 @@ void lora_task(void *pvParameters)
       //Recieve packet
       count = parsePacket(0);
       if (count) {
+          // ESP_LOGI(TAG, "Has %dbytes in FIFO with RSSI %d", count, packetRssi());
           not_interested = false;
           memset(&msg, 0, sizeof(msg));
           count = 0;
@@ -82,8 +84,10 @@ void lora_task(void *pvParameters)
               //you can clear FIFO in case packet does not belong to your node
               if(count == 3)
               {
-                if (msgPtr[1] != db_device_id || msgPtr[2] != sign.sign_low || msgPtr[3] != sign.sign_high) {
+                if (msgPtr[1] != db_device_id || msgPtr[2] != sign.s.sign_high || msgPtr[3] != sign.s.sign_low) {
                   //ESP_LOGI(TAG, " msgPtr[2] = %d and msgPtr[3] = %d", msgPtr[2], msgPtr[3]);
+                  ESP_LOGI(TAG, "Not interested in this packet, id = %d, sign = %x vs %x %x vs %x", msgPtr[1], msgPtr[2], sign.s.sign_low, msgPtr[3], sign.s.sign_high);
+                  // ESP_LOGI(TAG, "--- %02x %02x %02x %02x", msgPtr[0], msgPtr[1], msgPtr[2], msgPtr[3]);
                   loraSleep(); // Enter sleep mode to clear FIFO
                   vTaskDelay(2/portTICK_RATE_MS);
                   loraIdle();  // Back to standby mode
@@ -99,9 +103,10 @@ void lora_task(void *pvParameters)
          if(last_requestID != msg.requestID) {
              Data.packetID = msg.packetID;
              //ESP_LOGI(TAG, " packetID = %d and totalFrames = %d", msg.packetID, Data.totalFrames);
-             if (Data.totalFrames == 1) {
+             if (Data.s.totalFrames == 1) {
                //this frame has just one packet hence no more packet for this request id
                last_requestID = msg.requestID;
+               // ESP_LOGI(TAG, "RECV id %x, type %x", msg.requestID, msg.packetTyp);
                allReq[idx].requestID = msg.requestID;
                allReq[idx].packetTyp = msg.packetTyp;
                allReq[idx].packetID = msg.packetID;
@@ -118,6 +123,7 @@ void lora_task(void *pvParameters)
          } else {
               //resend ack as the mesg is recieved again
               sendResp(msg.requestID, msg.packetID, RESP_ACKNOWLEDGE_PACKET);
+              ESP_LOGI(TAG, "====== SENT ACK message with id 0x%04x to master", msg.requestID);
          }
       }
     }
