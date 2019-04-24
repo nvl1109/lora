@@ -63,7 +63,7 @@ void lora_task(void *pvParameters)
       if (xQueueReceive(txqueue, &msg, 2/portTICK_RATE_MS)) {
         //Has data to send
         beginPacket(0);
-        loraWriteBuf((uint8_t *)&msg, LORA_TX_BUFF_SIZE + msg.length);
+        loraWriteBuf((uint8_t *)&msg, LORA_HEADER_SIZE + msg.length);
         endPacket(0);
         vTaskDelay(2/portTICK_RATE_MS);
       }

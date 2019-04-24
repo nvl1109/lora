@@ -22,7 +22,8 @@
 #define TX_MESSGAGE_QUEUE_SIZE                             10
 #define MASTER_DEVICE_ID                                   0x80
 #define SSLA_SIGNATURE                                     0x4224
-#define LORA_TX_BUFF_SIZE                                  250 
+#define LORA_TX_BUFF_SIZE                                  250
+#define LORA_HEADER_SIZE                                   13
 #define MAX_REQUESTS                                       2
 #define MAX_BUFF_PER_REQ                                   2048
 //structure index that we ping pong between IoT's
