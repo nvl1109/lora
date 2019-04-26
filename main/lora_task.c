@@ -1,7 +1,6 @@
 /* Filename    : lora task source
    Description : this file will have upper layer code to read/write from  lora
    Author      : http://www.ssla.co.uk
-
    This software is SSLA licensed
    Unless required by applicable law or agreed to in writing, this
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
@@ -39,7 +38,7 @@ void initalize_lora(){
     }
     setSyncWord(0xF3);
     ESP_LOGI(TAG, "Lora init done");
-    dumpRegisters();
+    //dumpRegisters();
     ESP_LOGI(TAG, "DONE!!!");
     // enable CRC check
     enableCrc();
@@ -48,13 +47,14 @@ void initalize_lora(){
 
 void lora_task(void *pvParameters)
 {
-    int count = 0, len = 0;
+    int count = 0;
     struct messageFormat msg;
     union splitData Data;
     union splitSignature sign;
     char *msgPtr = (char *) &msg;
     char data;
     bool not_interested = false;
+    bool sync_done = false;
 
     initalize_lora();
     sign.signature = db_signature;
@@ -85,6 +85,16 @@ void lora_task(void *pvParameters)
               if(count == 3)
               {
                 if (msgPtr[1] != db_device_id || msgPtr[2] != sign.s.sign_high || msgPtr[3] != sign.s.sign_low) {
+                  //check if it a Sync packetTyp
+                  if (msgPtr[2] == sign.s.sign_high && msgPtr[3] == sign.s.sign_low && !sync_done){
+                    if(msgPtr[1] == BROADCAST_SYNC_ID &&  msgPtr[0] == MASTER_DEVICE_ID){
+                      startPeriodicTimer();
+                      sync_done = true;
+                    }else if ( msgPtr[0] >= 0x00 && msgPtr[0] < MAX_SLAVES && msgPtr[1] == MASTER_DEVICE_ID){
+                      startOneShotTimer(msgPtr[0]);
+                      sync_done = true;
+                    }
+                  }
                   //ESP_LOGI(TAG, " msgPtr[2] = %d and msgPtr[3] = %d", msgPtr[2], msgPtr[3]);
                   ESP_LOGI(TAG, "Not interested in this packet, id = %d, sign = %x vs %x %x vs %x", msgPtr[1], msgPtr[2], sign.s.sign_low, msgPtr[3], sign.s.sign_high);
                   // ESP_LOGI(TAG, "--- %02x %02x %02x %02x", msgPtr[0], msgPtr[1], msgPtr[2], msgPtr[3]);

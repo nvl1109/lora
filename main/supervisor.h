@@ -21,11 +21,13 @@
 
 #define TX_MESSGAGE_QUEUE_SIZE                             10
 #define MASTER_DEVICE_ID                                   0x80
+#define BROADCAST_SYNC_ID                                  0xF0
 #define SSLA_SIGNATURE                                     0x4224
 #define LORA_TX_BUFF_SIZE                                  250
 #define LORA_HEADER_SIZE                                   13
 #define MAX_REQUESTS                                       2
 #define MAX_BUFF_PER_REQ                                   2048
+#define MAX_SLAVES                                         10
 //structure index that we ping pong between IoT's
 #define SRC_ADDRESS                                        0
 #define DEST_ADDRESS                                       SRC_ADDRESS + 1
@@ -40,6 +42,11 @@
 #define SSLA_PAYLOAD                                       SSLA_PAYLOAD_LENGTH + 1
 #define PACKET_END_NO_FRAMES                               0x0101
 
+//timer setup after sync packet or status packet
+#define MAXIMUM_RESP_TIME_DURATION                         5000000  // 5 seconds
+#define EACH_SLAVE_TIME_SLOT                               500000   // 0.5 seconds
+#define FREERTOS_EACH_SLAVE_TIME_SLOT                      500   // 0.5 seconds
+
 extern unsigned short             db_lora_reg;
 extern unsigned short             db_device_id;
 extern unsigned short             db_signature;
@@ -51,7 +58,8 @@ void supervisor_task(void * pvParameter);
 
 typedef enum {
                /*this type of packetTyp is recieved by SLAVE*/
-               REQ_INTERIM_PACKET = 1,
+               REQ_SYNC_LAN_PACKET = 1,
+               REQ_INTERIM_PACKET = 2,
                REQ_READ_ANALOG_SENSOR,
                REQ_READ_DIGITAL_SENSOR,
                REQ_WRITE_GPIO_OUTPUT_PINS,

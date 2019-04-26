@@ -154,23 +154,32 @@ void app_main()
         err = nvs_get_i16(my_handle, "ssla_signature", (int16_t *)&db_signature);
         ESP_LOGI(TAG, "Current software version = 0x%x in decimal = %d" , db_build_ver, db_build_ver);
         ESP_LOGI(TAG, "db_lora_reg = 0x%x, db_device_id = 0x%x, db_signature = 0x%x", db_lora_reg, db_device_id, db_signature);
-        if (db_signature == 0) {
-            db_signature = SSLA_SIGNATURE;
-        }
     }
     initialise_wifi();
     xTaskCreate(&ota_task, "ota_task", OTA_STACK_SIZE, NULL, OTA_TASK_PRIORITY, NULL);
     xTaskCreate(&software_update_task, "software_update_task", SOFTWARE_UPDATE_STACK_SIZE, NULL, SOFTWARE_UPDATE_TASK_PRIORITY, NULL);
 
-    RxdataAvailable = xSemaphoreCreateBinary();
-    if( xSemaphoreTake( RxdataAvailable, ( TickType_t ) 10 ) != pdTRUE ) {
+    vSemaphoreCreateBinary(RxdataAvailable);
+    if(RxdataAvailable == NULL)
+    {
+      ESP_LOGI(TAG, "Heap unavailable");
+    }
+    else
+    {
+      ESP_LOGI(TAG, "created semaphore");
+    }
+    if( xSemaphoreTake( RxdataAvailable, ( TickType_t ) 100 ) != pdTRUE ) {
       ESP_LOGI(TAG, "Failed to get semaphore ");
+    }
+    else{
+        ESP_LOGI(TAG, "Got semaphore ");
     }
     //create message queue for transmitting lora packet
     txqueue = xQueueCreate(TX_MESSGAGE_QUEUE_SIZE, sizeof(txData));
 
     vSupervisor_Start( SUPERVISOR_TASK_PRIORITY);
     ESP_LOGI(TAG, "app_main exited");
+    vTaskDelete(NULL);
 }
 
 void app_wifi_wait_connected(){

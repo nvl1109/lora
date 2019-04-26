@@ -38,7 +38,9 @@
 void lora_task(void * pvParameter);
 extern bool lora_ready;
 extern int  idx;
-//int lora_send(struct lora_msg *msg);
+
+extern void startPeriodicTimer();
+extern void startOneShotTimer(uint8_t devID);
 
 union splitData {
    struct {
@@ -55,6 +57,4 @@ union splitSignature {
    } s;
    uint16_t signature;
 };
-
-
 #endif
