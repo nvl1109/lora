@@ -47,6 +47,7 @@ unsigned short db_signature = 0;
 esp_err_t err;
 SemaphoreHandle_t RxdataAvailable = NULL;
 xQueueHandle txqueue;
+TaskHandle_t s_software_update_tsk = NULL;
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -84,6 +85,14 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+	if (s_software_update_tsk == NULL) {
+            // Task isn't created --> create it
+    	    xTaskCreate(&software_update_task, "software_update_task", SOFTWARE_UPDATE_STACK_SIZE, NULL, SOFTWARE_UPDATE_TASK_PRIORITY, &s_software_update_tsk);
+	    if(s_software_update_tsk == NULL) {
+		ESP_LOGE(TAG, "Software update task creation failed");
+	    }
+	}
+
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         /* This is a workaround as ESP32 WiFi libs don't currently
@@ -152,13 +161,15 @@ void app_main()
         err = nvs_get_i16(my_handle, "lora_reg", (int16_t *)&db_lora_reg);
         err = nvs_get_i16(my_handle, "device_id", (int16_t *)&db_device_id);
         err = nvs_get_i16(my_handle, "ssla_signature", (int16_t *)&db_signature);
+        //if (db_signature == 0) {
+        //    db_signature = SSLA_SIGNATURE;
+        //}
+        //db_device_id = 1;
         ESP_LOGI(TAG, "Current software version = 0x%x in decimal = %d" , db_build_ver, db_build_ver);
         ESP_LOGI(TAG, "db_lora_reg = 0x%x, db_device_id = 0x%x, db_signature = 0x%x", db_lora_reg, db_device_id, db_signature);
     }
     initialise_wifi();
-    xTaskCreate(&ota_task, "ota_task", OTA_STACK_SIZE, NULL, OTA_TASK_PRIORITY, NULL);
-    xTaskCreate(&software_update_task, "software_update_task", SOFTWARE_UPDATE_STACK_SIZE, NULL, SOFTWARE_UPDATE_TASK_PRIORITY, NULL);
-
+    
     vSemaphoreCreateBinary(RxdataAvailable);
     if(RxdataAvailable == NULL)
     {
